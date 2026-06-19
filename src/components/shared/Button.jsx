@@ -1,35 +1,42 @@
 import React from 'react';
 
-export function Button({ children, onClick, variant = 'primary', ...props }) {
+/**
+ * Button variants: primary | gold | navy | outline | ghost | danger
+ * Sizes: sm | md (default) | lg
+ */
+export function Button({
+  children,
+  onClick,
+  variant = 'primary',
+  size = 'md',
+  fullWidth = false,
+  disabled = false,
+  type = 'button',
+  icon,
+  style,
+  ...props
+}) {
+  const variantClass = `btn-${variant}`;
+  const sizeClass = size !== 'md' ? `btn-${size}` : '';
+
   return (
-    <button style={{ ...styles.button, ...styles[variant] }} onClick={onClick} {...props}>
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`btn ${variantClass} ${sizeClass}`.trim()}
+      style={{
+        width: fullWidth ? '100%' : undefined,
+        opacity: disabled ? 0.5 : 1,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        ...style,
+      }}
+      {...props}
+    >
+      {icon && <span style={{ fontSize: '1.1em', lineHeight: 1 }}>{icon}</span>}
       {children}
     </button>
   );
 }
 
-const styles = {
-  button: {
-    border: 'none',
-    padding: '12px 24px',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    fontFamily: "'Poppins', sans-serif",
-  },
-  primary: {
-    background: 'var(--imperial-gold)',
-    color: 'var(--royal-indigo-deep)',
-  },
-  secondary: {
-    background: 'var(--royal-indigo)',
-    color: '#fff',
-  },
-  outline: {
-    background: 'transparent',
-    border: '2px solid var(--imperial-gold)',
-    color: 'var(--imperial-gold)',
-  },
-};
+export default Button;

@@ -1,7 +1,7 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import authService from '../services/auth.js';
 
-export const AuthContext = createContext();
+export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -10,7 +10,8 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (authService.isAuthenticated()) {
-      setUser(authService.getCurrentUser());
+      const u = authService.getCurrentUser();
+      setUser(u);
       setIsAuthenticated(true);
     }
     setLoading(false);
@@ -21,17 +22,12 @@ export function AuthProvider({ children }) {
     if (result.success) {
       setUser(result.user);
       setIsAuthenticated(true);
-      return result;
     }
     return result;
   };
 
   const register = (name, email, phone, password, language) => {
-    const result = authService.register(name, email, phone, password, language);
-    if (result.success) {
-      return result;
-    }
-    return result;
+    return authService.register(name, email, phone, password, language);
   };
 
   const logout = () => {
@@ -40,14 +36,15 @@ export function AuthProvider({ children }) {
     setIsAuthenticated(false);
   };
 
-  const value = {
-    user,
-    isAuthenticated,
-    loading,
-    login,
-    register,
-    logout,
-  };
+  return (
+    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, register, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be inside AuthProvider');
+  return ctx;
 }
