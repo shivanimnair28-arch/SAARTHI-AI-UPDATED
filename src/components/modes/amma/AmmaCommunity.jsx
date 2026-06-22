@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useToast } from '../../../hooks/useToast';
 
-const DEFAULT_GROUPS = [
+const GROUPS = [
   {
     id: 1, name: 'Mahila Mandal — West Ward',
     leader: 'Mrs. Lakshmi Sharma', members: 45,
@@ -11,7 +11,8 @@ const DEFAULT_GROUPS = [
     fee: '₹50/month',
     activities: ['Stitching Classes', 'Financial Literacy', 'Health Camps'],
     phone: '9876543210',
-    color: '#FF9933',
+    color: '#D4547A',
+    whatsapp: 'https://chat.whatsapp.com/B6z4dusyyJECecT8IHI38w',
   },
   {
     id: 2, name: 'Self Help Group — Craft Makers',
@@ -23,6 +24,7 @@ const DEFAULT_GROUPS = [
     activities: ['Pottery', 'Weaving', 'Embroidery', 'Market Access'],
     phone: '9876543211',
     color: '#10B981',
+    whatsapp: 'https://chat.whatsapp.com/B6z4dusyyJECecT8IHI38w',
   },
   {
     id: 3, name: 'Joint Liability Group — Savings Circle',
@@ -34,72 +36,30 @@ const DEFAULT_GROUPS = [
     activities: ['Savings Pool', 'Micro-loans', 'Business Training'],
     phone: '9876543212',
     color: '#6C63FF',
+    whatsapp: 'https://chat.whatsapp.com/B6z4dusyyJECecT8IHI38w',
   },
 ];
-import { useLanguage } from '../../../contexts/LanguageContext';
 
 export default function AmmaCommunity() {
   const [view, setView] = useState('groups');
-  const [groups, setGroups] = useState(DEFAULT_GROUPS);
   const { showToast } = useToast();
-  const { t } = useLanguage();
-  const cT = t?.community || {};
-
-  // Form State
-  const [formName, setFormName] = useState('');
-  const [formFocus, setFormFocus] = useState('');
-  const [formLocation, setFormLocation] = useState('');
-  const [formPhone, setFormPhone] = useState('');
-
-  const handleCreateGroup = () => {
-    if (!formName.trim() || !formFocus.trim()) {
-      showToast('Please fill out the Group Name and Focus Area', 'warning');
-      return;
-    }
-
-    const newGroup = {
-      id: Date.now(),
-      name: formName,
-      leader: 'You', // Assuming the current user is the leader
-      members: 1,
-      focus: formFocus,
-      meetings: 'TBD',
-      location: formLocation || 'Local Area',
-      fee: 'Free',
-      activities: ['New Group Activity'],
-      phone: formPhone || '-',
-      color: '#0EA5E9', // Default distinct color
-    };
-
-    setGroups([newGroup, ...groups]);
-    showToast(`${formName} created successfully! 🎊`, 'success');
-    
-    // Reset and switch view
-    setFormName('');
-    setFormFocus('');
-    setFormLocation('');
-    setFormPhone('');
-    setView('groups');
-  };
-
-  const activeGroups = cT.defaultMock || groups;
 
   return (
     <div style={styles.page}>
       <div>
-        <h1 style={styles.title}>{cT.title}</h1>
-        <p style={styles.subtitle}>{cT.subtitle}</p>
+        <h1 style={styles.title}>Community & SHGs 👥</h1>
+        <p style={styles.subtitle}>Connect with women's groups, earn income, and grow together</p>
       </div>
 
       <div style={styles.tabRow}>
-        {[['groups', cT.browse || 'Browse Groups'], ['create', cT.start || 'Start New Group']].map(([key, label]) => (
+        {[['groups', 'Browse Groups'], ['create', 'Start New Group']].map(([key, label]) => (
           <button
             key={key}
             style={{
               ...styles.tab,
-              background: view === key ? 'var(--saffron)' : '#fff',
+              background: view === key ? '#D4547A' : '#fff',
               color: view === key ? '#fff' : 'var(--gray-600)',
-              borderColor: view === key ? 'var(--saffron)' : 'var(--gray-200)',
+              borderColor: view === key ? '#D4547A' : 'var(--gray-200)',
             }}
             onClick={() => setView(key)}
           >
@@ -110,7 +70,7 @@ export default function AmmaCommunity() {
 
       {view === 'groups' && (
         <div style={styles.groupsList}>
-          {activeGroups.map(g => (
+          {GROUPS.map(g => (
             <div key={g.id} className="saarthi-card" style={{ borderLeft: `4px solid ${g.color}` }}>
               <div style={styles.groupHeader}>
                 <div>
@@ -118,7 +78,7 @@ export default function AmmaCommunity() {
                   <p style={styles.groupLeader}>👤 {g.leader}</p>
                 </div>
                 <div style={{ ...styles.memberBadge, background: g.color }}>
-                  {g.members} {cT.members}
+                  {g.members} members
                 </div>
               </div>
               <p style={styles.groupFocus}>{g.focus}</p>
@@ -133,19 +93,30 @@ export default function AmmaCommunity() {
                 ))}
               </div>
               <div style={styles.groupActions}>
-                <button
-                  className="btn btn-sm"
-                  style={{ background: g.color, color: '#fff', borderRadius: 'var(--r-full)', flex: 1 }}
-                  onClick={() => showToast(`Joined ${g.name}! 🎉`, 'success')}
-                >
-                  📝 {cT.join}
-                </button>
+                {/* If WhatsApp link exists, open it — else show toast */}
+                {g.whatsapp ? (
+                  <button
+                    className="btn btn-sm"
+                    style={{ background: '#25D366', color: '#fff', borderRadius: 'var(--r-full)', flex: 1 }}
+                    onClick={() => window.open(g.whatsapp, '_blank')}
+                  >
+                    💬 Join WhatsApp Group
+                  </button>
+                ) : (
+                  <button
+                    className="btn btn-sm"
+                    style={{ background: g.color, color: '#fff', borderRadius: 'var(--r-full)', flex: 1 }}
+                    onClick={() => showToast(`Joined ${g.name}! 🎉`, 'success')}
+                  >
+                    📝 Join Group
+                  </button>
+                )}
                 <button
                   className="btn btn-sm"
                   style={{ background: '#fff', border: `1.5px solid ${g.color}`, color: g.color, borderRadius: 'var(--r-full)' }}
-                  onClick={() => showToast(`Calling ${g.leader}… 📞`, 'info')}
+                  onClick={() => window.location.href = `tel:+91${g.phone}`}
                 >
-                  📞 {cT.contact}
+                  📞 Contact
                 </button>
               </div>
             </div>
@@ -155,51 +126,28 @@ export default function AmmaCommunity() {
 
       {view === 'create' && (
         <div className="saarthi-card">
-          <h3 style={styles.formTitle}>{cT.formTitle}</h3>
-          <p style={styles.formDesc}>{cT.formDesc}</p>
+          <h3 style={styles.formTitle}>🚀 Start Your Own Group</h3>
+          <p style={styles.formDesc}>
+            Build a community with your neighbors to share resources, skills and grow together.
+          </p>
           <div style={styles.form}>
-            <div style={styles.field}>
-              <label style={styles.label}>{cT.gName}</label>
-              <input 
-                className="saarthi-input" 
-                placeholder="e.g., Women's Stitching Group" 
-                value={formName}
-                onChange={e => setFormName(e.target.value)}
-              />
-            </div>
-            <div style={styles.field}>
-              <label style={styles.label}>{cT.focus}</label>
-              <input 
-                className="saarthi-input" 
-                placeholder="e.g., Skill training, Savings, Crafts" 
-                value={formFocus}
-                onChange={e => setFormFocus(e.target.value)}
-              />
-            </div>
-            <div style={styles.field}>
-              <label style={styles.label}>{cT.loc}</label>
-              <input 
-                className="saarthi-input" 
-                placeholder="Your locality or address" 
-                value={formLocation}
-                onChange={e => setFormLocation(e.target.value)}
-              />
-            </div>
-            <div style={styles.field}>
-              <label style={styles.label}>{cT.phone}</label>
-              <input 
-                className="saarthi-input" 
-                placeholder="+91 XXXXX XXXXX" 
-                value={formPhone}
-                onChange={e => setFormPhone(e.target.value)}
-              />
-            </div>
+            {[
+              ['Group Name', 'e.g., Women\'s Stitching Group'],
+              ['Focus Area', 'e.g., Skill training, Savings, Crafts'],
+              ['Location', 'Your locality or address'],
+              ['Contact Number', '+91 XXXXX XXXXX'],
+            ].map(([label, ph]) => (
+              <div key={label} style={styles.field}>
+                <label style={styles.label}>{label}</label>
+                <input className="saarthi-input" placeholder={ph} />
+              </div>
+            ))}
             <button
               className="btn btn-primary"
               style={{ width: '100%', marginTop: 4 }}
-              onClick={handleCreateGroup}
+              onClick={() => showToast('Group creation request submitted! 🎊', 'success')}
             >
-              {cT.createBtn}
+              🚀 Create Group
             </button>
           </div>
         </div>
@@ -235,8 +183,8 @@ const styles = {
   },
   activityTags: { display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 },
   activityTag: {
-    background: 'var(--ivory)', border: '1px solid var(--saffron-glow)',
-    color: 'var(--saffron-dark)', padding: '4px 10px',
+    background: 'var(--ivory)', border: '1px solid rgba(212,84,122,0.2)',
+    color: '#D4547A', padding: '4px 10px',
     borderRadius: 'var(--r-full)', fontSize: 12, fontWeight: 600,
   },
   groupActions: { display: 'flex', gap: 8 },
