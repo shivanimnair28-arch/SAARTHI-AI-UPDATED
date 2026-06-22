@@ -3,7 +3,137 @@ import axios from 'axios';
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
+/**
+ * Helper: returns true if the Gemini API key is configured
+ */
+function hasApiKey() {
+  return !!(GEMINI_API_KEY && GEMINI_API_KEY !== 'your_gemini_api_key_here');
+}
+
+/**
+ * Helper: make a Gemini API call and extract the text response.
+ * Throws on network or API errors.
+ */
+async function callGemini(contents, options = {}) {
+  if (!hasApiKey()) return null;
+
+  const response = await axios.post(
+    `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
+    { contents, ...options }
+  );
+
+  const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  return text || null;
+}
+
+/**
+ * Helper: extract JSON from a Gemini text response
+ */
+function extractJson(text) {
+  if (!text) return null;
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  return jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+}
+
 const geminiService = {
+  /**
+   * Check whether the Gemini API key is available
+   */
+  isAvailable() {
+    return hasApiKey();
+  },
+
+  /**
+   * Multi-turn chat — sends full conversation history to Gemini.
+   * @param {Array} messageHistory - Array of { role: 'user'|'model', text: string }
+   * @param {string} systemPrompt  - System context for the persona
+   * @param {string} language      - Language code (en, hi, ta, te)
+   * @returns {string|null} The assistant's response text
+   */
+  async chat(messageHistory, systemPrompt = '', language = 'en') {
+    try {
+      // Build the contents array with system context as the first user turn
+      const contents = [];
+
+      // Inject system prompt + language instruction as the first exchange
+      if (systemPrompt) {
+        const langInstruction = `\n\nIMPORTANT: You MUST respond entirely in the language corresponding to this language code: "${language}". If the language is "hi", respond in Hindi. If "ta", respond in Tamil. If "te", respond in Telugu. If "en", respond in English.`;
+        contents.push({
+          role: 'user',
+          parts: [{ text: systemPrompt + langInstruction + '\n\nAcknowledge this context and be ready to help.' }]
+        });
+        contents.push({
+          role: 'model',
+          parts: [{ text: 'Understood. I am ready to help as described.' }]
+        });
+      }
+
+      // Append the real conversation history
+      for (const msg of messageHistory) {
+        contents.push({
+          role: msg.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: msg.text }]
+        });
+      }
+
+      const text = await callGemini(contents);
+      return text;
+    } catch (error) {
+      console.error('Gemini Chat Error:', error?.response?.data || error.message);
+      return null;
+    }
+  },
+
+  /**
+   * Analyze a message for scam/fraud indicators using Gemini AI.
+   * Used by ScamShield.
+   * @param {string} message  - The suspicious message to analyze
+   * @param {string} type     - Message type: sms, whatsapp, upi, url, email
+   * @param {string} language - Language code
+   * @returns {object|null} Scam analysis result
+   */
+  async analyzeScam(message, type, language = 'en') {
+    try {
+      const prompt = `You are a cybersecurity expert specializing in scam and fraud detection in India.
+
+Analyze this ${type.toUpperCase()} message for scam indicators:
+
+"""
+${message}
+"""
+
+Respond ONLY with a valid JSON object in this exact format:
+{
+  "riskScore": <number 0-100>,
+  "riskLevel": "<SAFE|LOW|MEDIUM|HIGH|CRITICAL>",
+  "detectedScams": [
+    {
+      "type": "<scam_type>",
+      "risk": "<low|medium|high>",
+      "description": "<brief explanation>"
+    }
+  ],
+  "suspiciousIndicators": ["<indicator 1>", "<indicator 2>"],
+  "recommendation": "<what the user should do>"
+}
+
+Be thorough. Look for: urgency tactics, fake links, OTP requests, lottery/prize claims, impersonation, too-good-to-be-true offers, phishing, UPI fraud patterns.
+Language for recommendation field: ${language}`;
+
+      const contents = [{ parts: [{ text: prompt }] }];
+      const text = await callGemini(contents);
+      const result = extractJson(text);
+
+      if (result && typeof result.riskScore === 'number') {
+        return result;
+      }
+      return null;
+    } catch (error) {
+      console.error('Gemini Scam Analysis Error:', error?.response?.data || error.message);
+      return null;
+    }
+  },
+
   async generateRecipe(ingredients, cuisine, language = 'en') {
     try {
       const prompt = `Generate a delicious ${cuisine} recipe using these ingredients: ${ingredients}.
@@ -22,16 +152,8 @@ const geminiService = {
 
       Language: ${language}`;
 
-      const response = await axios.post(
-        `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
-        {
-          contents: [{ parts: [{ text: prompt }] }]
-        }
-      );
-
-      const content = response.data.candidates[0].content.parts[0].text;
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      return jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+      const text = await callGemini([{ parts: [{ text: prompt }] }]);
+      return extractJson(text);
     } catch (error) {
       console.error('Gemini Recipe Error:', error);
       return null;
@@ -55,16 +177,8 @@ const geminiService = {
 
       Language: ${language}`;
 
-      const response = await axios.post(
-        `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
-        {
-          contents: [{ parts: [{ text: prompt }] }]
-        }
-      );
-
-      const content = response.data.candidates[0].content.parts[0].text;
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      return jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+      const text = await callGemini([{ parts: [{ text: prompt }] }]);
+      return extractJson(text);
     } catch (error) {
       console.error('Gemini Notes Error:', error);
       return null;
@@ -86,16 +200,8 @@ const geminiService = {
         "risks": ["risk 1"]
       }`;
 
-      const response = await axios.post(
-        `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
-        {
-          contents: [{ parts: [{ text: prompt }] }]
-        }
-      );
-
-      const content = response.data.candidates[0].content.parts[0].text;
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      return jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+      const text = await callGemini([{ parts: [{ text: prompt }] }]);
+      return extractJson(text);
     } catch (error) {
       console.error('Gemini Business Insights Error:', error);
       return null;
@@ -118,16 +224,8 @@ const geminiService = {
         "growthPotential": "high/medium/low"
       }`;
 
-      const response = await axios.post(
-        `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
-        {
-          contents: [{ parts: [{ text: prompt }] }]
-        }
-      );
-
-      const content = response.data.candidates[0].content.parts[0].text;
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      return jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+      const text = await callGemini([{ parts: [{ text: prompt }] }]);
+      return extractJson(text);
     } catch (error) {
       console.error('Gemini Career Error:', error);
       return null;
@@ -149,16 +247,8 @@ const geminiService = {
         "variants": ["variant 1", "variant 2"]
       }`;
 
-      const response = await axios.post(
-        `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
-        {
-          contents: [{ parts: [{ text: prompt }] }]
-        }
-      );
-
-      const content = response.data.candidates[0].content.parts[0].text;
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      return jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+      const text = await callGemini([{ parts: [{ text: prompt }] }]);
+      return extractJson(text);
     } catch (error) {
       console.error('Gemini Marketing Error:', error);
       return null;

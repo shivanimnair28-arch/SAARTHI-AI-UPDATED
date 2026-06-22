@@ -1,7 +1,9 @@
 import React, { useState, useCallback } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export default function VoiceButton({ size = 60, persona = 'default', onTranscript }) {
   const [listening, setListening] = useState(false);
+  const { language } = useLanguage();
 
   const handleClick = useCallback(async () => {
     if (listening) return;
@@ -16,7 +18,18 @@ export default function VoiceButton({ size = 60, persona = 'default', onTranscri
     setListening(true);
     try {
       const recognition = new SpeechRecognition();
-      recognition.lang = 'en-IN';
+      
+      // Map language code to speech recognition locale
+      const langMap = {
+        hi: 'hi-IN',
+        ta: 'ta-IN',
+        te: 'te-IN',
+        bn: 'bn-IN',
+        mr: 'mr-IN',
+        en: 'en-IN'
+      };
+      
+      recognition.lang = langMap[language] || 'en-IN';
       recognition.continuous = false;
       recognition.interimResults = false;
 
@@ -31,7 +44,7 @@ export default function VoiceButton({ size = 60, persona = 'default', onTranscri
     } catch {
       setListening(false);
     }
-  }, [listening, onTranscript]);
+  }, [listening, onTranscript, language]);
 
   return (
     <button

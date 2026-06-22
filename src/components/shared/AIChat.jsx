@@ -4,6 +4,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { personaPrompts } from '../../config/personaPrompts';
 import VoiceButton from './VoiceButton';
 import geminiService from '../../services/gemini';
+import voiceService from '../../services/voice';
 
 const GREETINGS = {
   en: {
@@ -32,14 +33,35 @@ const GREETINGS = {
   }
 };
 
+// Simple markdown parser
+function parseMarkdown(text) {
+  if (!text) return '';
+  return text
+    // Replace headers
+    .replace(/^### (.*$)/gim, '<strong>$1</strong>')
+    .replace(/^## (.*$)/gim, '<strong>$1</strong>')
+    .replace(/^# (.*$)/gim, '<strong>$1</strong>')
+    // Replace bold
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    // Replace italic
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    // Replace newlines with breaks
+    .replace(/\n/g, '<br/>')
+    // Fix bullets
+    .replace(/<br\/>\* /g, '<br/>• ')
+    .replace(/<br\/>- /g, '<br/>• ');
+}
+
 export default function AIChat({ persona, placeholder, suggestedPrompts = [] }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [ttsEnabled, setTtsEnabled] = useState(false);
   const messagesEndRef = useRef(null);
   const { showToast } = useToast();
   const { language } = useLanguage();
   const personaInfo = personaPrompts[persona] || {};
+  const isApiAvailable = geminiService.isAvailable();
 
   // Welcome message on mount or language change
   useEffect(() => {
@@ -59,35 +81,29 @@ export default function AIChat({ persona, placeholder, suggestedPrompts = [] }) 
   const sendMessage = async (text) => {
     if (!text.trim()) return;
     const userMsg = { id: Date.now(), role: 'user', text: text.trim(), time: new Date() };
+    
+    // Add user message to state
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);
 
     try {
-      // Build a simple prompt with the persona system context and language instruction
-      const systemContext = personaInfo.systemPrompt || '';
-      const prompt = `${systemContext}\n\nIMPORTANT: You must respond entirely in the language corresponding to this language code: "${language}".\n\nUser: ${text.trim()}\n\nAssistant:`;
-
-      // Try Gemini, fallback to intelligent local response
       let responseText = '';
-      try {
-        const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-        if (apiKey) {
-          const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-            }
-          );
-          const data = await res.json();
-          responseText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        }
-      } catch { /* fallback below */ }
 
+      if (isApiAvailable) {
+        // Build history from previous messages
+        const history = messages.map(m => ({ role: m.role, text: m.text }));
+        history.push({ role: 'user', text: text.trim() });
+        
+        responseText = await geminiService.chat(history, personaInfo.systemPrompt || '', language);
+      }
+
+      // Fallback if API fails or is not available
       if (!responseText) {
         responseText = getLocalResponse(persona, text.trim(), language);
+        if (isApiAvailable) {
+           showToast('AI response failed, using fallback.', 'warning');
+        }
       }
 
       const assistantMsg = {
@@ -96,7 +112,13 @@ export default function AIChat({ persona, placeholder, suggestedPrompts = [] }) 
         text: responseText,
         time: new Date(),
       };
+      
       setMessages(prev => [...prev, assistantMsg]);
+      
+      if (ttsEnabled) {
+        voiceService.speak(responseText, language, persona);
+      }
+      
     } catch (err) {
       showToast('Could not get a response. Please try again.', 'error');
     } finally {
@@ -106,6 +128,40 @@ export default function AIChat({ persona, placeholder, suggestedPrompts = [] }) 
 
   return (
     <div style={styles.wrapper}>
+      <style>
+        {`
+          @keyframes bounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-4px); }
+          }
+          .typing-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--gray-500, #6b7280);
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.4s infinite ease-in-out both;
+          }
+          .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+          .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+          .typing-dot:nth-child(3) { animation-delay: 0s; }
+        `}
+      </style>
+      
+      {/* Missing API Key Warning */}
+      {!isApiAvailable && (
+        <div style={styles.warningBanner}>
+          ⚠️ Gemini API Key is missing. Using offline fallback responses. Add VITE_GEMINI_API_KEY to your .env file to enable AI.
+        </div>
+      )}
+      
+      {/* Header controls */}
+      <div style={styles.chatHeader}>
+        <div style={styles.ttsToggle} onClick={() => setTtsEnabled(!ttsEnabled)}>
+          {ttsEnabled ? '🔊 Voice On' : '🔇 Voice Off'}
+        </div>
+      </div>
+
       {/* Messages */}
       <div style={styles.messages} aria-live="polite" aria-label="Chat messages">
         {messages.map(msg => (
@@ -123,7 +179,14 @@ export default function AIChat({ persona, placeholder, suggestedPrompts = [] }) 
               ...styles.bubble,
               ...(msg.role === 'user' ? styles.userBubble : styles.assistantBubble),
             }}>
-              <p style={styles.bubbleText}>{msg.text}</p>
+              {msg.role === 'user' ? (
+                <p style={styles.bubbleText}>{msg.text}</p>
+              ) : (
+                <p 
+                  style={styles.bubbleText} 
+                  dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.text) }} 
+                />
+              )}
               <span style={styles.msgTime}>
                 {msg.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
@@ -136,7 +199,9 @@ export default function AIChat({ persona, placeholder, suggestedPrompts = [] }) 
             <div style={styles.assistantAvatar}>🤖</div>
             <div style={{ ...styles.bubble, ...styles.assistantBubble }}>
               <div style={styles.typing}>
-                <span /><span /><span />
+                <span className="typing-dot" />
+                <span className="typing-dot" />
+                <span className="typing-dot" />
               </div>
             </div>
           </div>
@@ -251,6 +316,33 @@ const styles = {
     border: '1px solid var(--gray-100)',
     overflow: 'hidden',
   },
+  warningBanner: {
+    background: '#FEF2F2',
+    color: '#991B1B',
+    padding: '8px 16px',
+    fontSize: 12,
+    fontWeight: 500,
+    textAlign: 'center',
+    borderBottom: '1px solid #FCA5A5'
+  },
+  chatHeader: {
+    padding: '8px 16px',
+    borderBottom: '1px solid var(--gray-100)',
+    display: 'flex',
+    justifyContent: 'flex-end',
+    background: 'var(--gray-50)',
+  },
+  ttsToggle: {
+    fontSize: 12,
+    cursor: 'pointer',
+    color: 'var(--gray-600)',
+    fontWeight: 500,
+    padding: '4px 8px',
+    borderRadius: '4px',
+    background: '#fff',
+    border: '1px solid var(--gray-200)',
+    userSelect: 'none'
+  },
   messages: {
     flex: 1,
     overflowY: 'auto',
@@ -296,7 +388,7 @@ const styles = {
     textAlign: 'right',
   },
   typing: {
-    display: 'flex', gap: 4, padding: '4px 2px',
+    display: 'flex', gap: 4, padding: '4px 2px', alignItems: 'center', height: 20
   },
   suggestions: {
     display: 'flex',

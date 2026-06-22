@@ -355,6 +355,8 @@ export default function AmmaRecipes() {
     showToast(rT.generating || 'Creating a perfect recipe for you...', 'info');
     try {
       const newRecipeData = await apiService.generateRecipe(ingredients, language);
+      if (!newRecipeData) throw new Error('API returned null');
+      
       // Map API response to our format
       const newRecipe = {
         id: newRecipeData._id || Date.now(),
@@ -374,7 +376,26 @@ export default function AmmaRecipes() {
       setIngredients('');
       showToast('Recipe generated perfectly!', 'success');
     } catch (err) {
-      showToast('Failed to generate recipe.', 'error');
+      // Fallback: Search in DEFAULT_RECIPES based on typed ingredients
+      const searchTerms = ingredients.toLowerCase().split(/[,\s]+/).filter(Boolean);
+      let matchedRecipe = null;
+      
+      for (const recipe of DEFAULT_RECIPES) {
+        const recipeIngs = recipe.ingredients.map(i => i.toLowerCase()).join(' ');
+        if (searchTerms.some(term => recipeIngs.includes(term) || recipe.name.toLowerCase().includes(term))) {
+          matchedRecipe = { ...recipe, id: Date.now() }; // create a copy to bring to top
+          break;
+        }
+      }
+
+      if (matchedRecipe) {
+        setRecipes([matchedRecipe, ...recipes]);
+        setExpanded(matchedRecipe.id);
+        setIngredients('');
+        showToast('Using an offline recipe match for you! 🍳', 'success');
+      } else {
+        showToast('Failed to generate recipe. No offline match found.', 'error');
+      }
     } finally {
       setGenerating(false);
     }
