@@ -45,7 +45,7 @@ export default function ScamShieldPage() {
     try {
       const res = await scamDetectionService.analyze(message, type, language);
       setResult(res);
-    } catch (error) {
+    } catch (_error) {
       showToast(sT.errorFailed || 'Analysis failed. Please try again.', 'error');
     } finally {
       setLoading(false);

@@ -1,3 +1,4 @@
+import process from "node:process";
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Scheme from './models/Scheme.js';
@@ -129,8 +130,8 @@ async function seed() {
 
     console.log('\n🎉 Seed complete!');
     process.exit(0);
-  } catch (error) {
-    console.error('❌ Seed failed:', error.message);
+  } catch (_error) {
+    console.error('❌ Seed failed:', _error.message);
     process.exit(1);
   }
 }

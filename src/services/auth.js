@@ -89,7 +89,7 @@ const authService = {
       const { data } = await api.get('/auth/profile');
       localStorage.setItem('saarthi_user', JSON.stringify(data));
       return { success: true, user: data };
-    } catch (error) {
+    } catch (_error) {
       return { success: false, error: 'Session expired' };
     }
   },
