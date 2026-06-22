@@ -165,7 +165,7 @@ export default function StudentCareer() {
               <button
                 className="btn btn-sm"
                 style={{ marginTop: 12, background: c.color, color: '#fff', borderRadius: 'var(--r-full)', width: '100%' }}
-                onClick={() => showToast(`Opening ${c.title} roadmap… 🗺️`, 'info')}
+                onClick={() => window.open('https://saarthi-career-spark.lovable.app', '_blank')}
               >
                 View Roadmap
               </button>
