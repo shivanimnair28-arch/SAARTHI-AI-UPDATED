@@ -340,13 +340,7 @@ export default function AmmaRecipes() {
   const rT = t.recipes || {};
 
   // Use localized mock data
-  const [recipes, setRecipes] = useState([{
-    id: 1, cuisine: 'north-indian', name: rT.defaultMock?.name || 'Aloo Gobi Masala',
-    time: rT.defaultMock?.time || '25 min', difficulty: rT.defaultMock?.diff || 'Easy', servings: 4, calories: 120,
-    ingredients: rT.defaultMock?.ing || [],
-    steps: rT.defaultMock?.steps || [],
-    tip: rT.defaultMock?.tip || '',
-  }]);
+  const [recipes, setRecipes] = useState(DEFAULT_RECIPES);
   
   // AI Generation State
   const [ingredients, setIngredients] = useState('');
