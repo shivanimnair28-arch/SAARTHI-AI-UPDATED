@@ -33,6 +33,294 @@ const DEFAULT_RECIPES = [
     steps: ['Marinate fish with turmeric and salt', 'Fry fish pieces in mustard oil', 'Sauté cumin and potatoes', 'Add tomatoes and spices', 'Add fish and water, simmer 10 min'],
     tip: 'Use mustard oil for authentic Bengali taste.',
   },
+  {
+  id: 5,
+  cuisine: 'north-indian',
+  name: 'Chole Masala',
+  time: '35 min',
+  difficulty: 'Medium',
+  servings: 4,
+  calories: 220,
+  ingredients: ['Chickpeas', 'Onion', 'Tomato', 'Ginger Garlic Paste', 'Chole Masala'],
+  steps: [
+    'Pressure cook chickpeas',
+    'Prepare onion tomato masala',
+    'Add spices',
+    'Mix chickpeas',
+    'Simmer 10 minutes'
+  ],
+  tip: 'Serve with bhatura or rice.'
+},
+{
+  id: 6,
+  cuisine: 'north-indian',
+  name: 'Rajma Curry',
+  time: '40 min',
+  difficulty: 'Medium',
+  servings: 4,
+  calories: 240,
+  ingredients: ['Rajma', 'Onion', 'Tomato', 'Spices'],
+  steps: [
+    'Soak rajma overnight',
+    'Pressure cook',
+    'Prepare gravy',
+    'Mix rajma',
+    'Cook 15 minutes'
+  ],
+  tip: 'Tastes best with jeera rice.'
+},
+{
+  id: 7,
+  cuisine: 'north-indian',
+  name: 'Paneer Butter Masala',
+  time: '30 min',
+  difficulty: 'Easy',
+  servings: 4,
+  calories: 280,
+  ingredients: ['Paneer', 'Tomato', 'Cream', 'Butter'],
+  steps: [
+    'Prepare tomato gravy',
+    'Blend smoothly',
+    'Add butter and cream',
+    'Add paneer',
+    'Cook 5 minutes'
+  ],
+  tip: 'Use fresh cream for richness.'
+},
+{
+  id: 8,
+  cuisine: 'south-indian',
+  name: 'Masala Dosa',
+  time: '30 min',
+  difficulty: 'Medium',
+  servings: 2,
+  calories: 210,
+  ingredients: ['Dosa Batter', 'Potato', 'Onion'],
+  steps: [
+    'Prepare potato masala',
+    'Spread dosa batter',
+    'Cook until crisp',
+    'Add masala',
+    'Fold and serve'
+  ],
+  tip: 'Serve with coconut chutney.'
+},
+{
+  id: 9,
+  cuisine: 'south-indian',
+  name: 'Sambar',
+  time: '35 min',
+  difficulty: 'Easy',
+  servings: 4,
+  calories: 140,
+  ingredients: ['Toor Dal', 'Vegetables', 'Sambar Powder'],
+  steps: [
+    'Cook dal',
+    'Cook vegetables',
+    'Add sambar powder',
+    'Mix dal',
+    'Temper and serve'
+  ],
+  tip: 'Use shallots for authentic taste.'
+},
+{
+  id: 10,
+  cuisine: 'south-indian',
+  name: 'Lemon Rice',
+  time: '15 min',
+  difficulty: 'Easy',
+  servings: 3,
+  calories: 180,
+  ingredients: ['Rice', 'Lemon', 'Peanuts', 'Curry Leaves'],
+  steps: [
+    'Cook rice',
+    'Prepare tempering',
+    'Add lemon juice',
+    'Mix rice',
+    'Serve'
+  ],
+  tip: 'Use freshly squeezed lemon.'
+},
+{
+  id: 11,
+  cuisine: 'south-indian',
+  name: 'Vegetable Upma',
+  time: '20 min',
+  difficulty: 'Easy',
+  servings: 3,
+  calories: 170,
+  ingredients: ['Rava', 'Vegetables', 'Mustard Seeds'],
+  steps: [
+    'Roast rava',
+    'Prepare tempering',
+    'Add vegetables',
+    'Add water',
+    'Mix rava and cook'
+  ],
+  tip: 'Serve hot with chutney.'
+},
+{
+  id: 12,
+  cuisine: 'gujarati',
+  name: 'Khaman Dhokla',
+  time: '25 min',
+  difficulty: 'Easy',
+  servings: 4,
+  calories: 160,
+  ingredients: ['Besan', 'Eno', 'Mustard Seeds'],
+  steps: [
+    'Prepare batter',
+    'Steam batter',
+    'Prepare tempering',
+    'Pour tempering',
+    'Serve'
+  ],
+  tip: 'Add sugar syrup for softness.'
+},
+{
+  id: 13,
+  cuisine: 'gujarati',
+  name: 'Thepla',
+  time: '25 min',
+  difficulty: 'Easy',
+  servings: 4,
+  calories: 190,
+  ingredients: ['Wheat Flour', 'Methi Leaves', 'Spices'],
+  steps: [
+    'Prepare dough',
+    'Roll thepla',
+    'Cook on tawa',
+    'Apply ghee',
+    'Serve'
+  ],
+  tip: 'Great for travel.'
+},
+{
+  id: 14,
+  cuisine: 'gujarati',
+  name: 'Handvo',
+  time: '45 min',
+  difficulty: 'Medium',
+  servings: 4,
+  calories: 210,
+  ingredients: ['Rice', 'Dal', 'Vegetables'],
+  steps: [
+    'Prepare batter',
+    'Ferment',
+    'Add vegetables',
+    'Bake',
+    'Serve'
+  ],
+  tip: 'Best with green chutney.'
+},
+{
+  id: 15,
+  cuisine: 'bengali',
+  name: 'Shorshe Ilish',
+  time: '35 min',
+  difficulty: 'Medium',
+  servings: 3,
+  calories: 260,
+  ingredients: ['Hilsa Fish', 'Mustard Paste'],
+  steps: [
+    'Prepare mustard paste',
+    'Marinate fish',
+    'Cook gravy',
+    'Add fish',
+    'Simmer'
+  ],
+  tip: 'Use fresh mustard paste.'
+},
+{
+  id: 16,
+  cuisine: 'bengali',
+  name: 'Aloo Posto',
+  time: '25 min',
+  difficulty: 'Easy',
+  servings: 3,
+  calories: 180,
+  ingredients: ['Potato', 'Poppy Seeds'],
+  steps: [
+    'Prepare poppy paste',
+    'Fry potatoes',
+    'Add paste',
+    'Cook',
+    'Serve'
+  ],
+  tip: 'Classic Bengali comfort food.'
+},
+{
+  id: 17,
+  cuisine: 'bengali',
+  name: 'Mishti Doi',
+  time: '20 min',
+  difficulty: 'Easy',
+  servings: 4,
+  calories: 220,
+  ingredients: ['Milk', 'Sugar', 'Curd'],
+  steps: [
+    'Caramelize sugar',
+    'Boil milk',
+    'Cool slightly',
+    'Add starter',
+    'Set overnight'
+  ],
+  tip: 'Chill before serving.'
+},
+{
+  id: 18,
+  cuisine: 'snacks',
+  name: 'Vegetable Samosa',
+  time: '30 min',
+  difficulty: 'Medium',
+  servings: 4,
+  calories: 250,
+  ingredients: ['Potato', 'Peas', 'Flour'],
+  steps: [
+    'Prepare filling',
+    'Make dough',
+    'Shape samosa',
+    'Deep fry',
+    'Serve'
+  ],
+  tip: 'Serve with mint chutney.'
+},
+{
+  id: 19,
+  cuisine: 'snacks',
+  name: 'Pani Puri',
+  time: '20 min',
+  difficulty: 'Easy',
+  servings: 4,
+  calories: 120,
+  ingredients: ['Puris', 'Potato', 'Mint Water'],
+  steps: [
+    'Prepare stuffing',
+    'Prepare pani',
+    'Fill puris',
+    'Add pani',
+    'Serve'
+  ],
+  tip: 'Serve immediately.'
+},
+{
+  id: 20,
+  cuisine: 'snacks',
+  name: 'Bread Pakora',
+  time: '20 min',
+  difficulty: 'Easy',
+  servings: 3,
+  calories: 220,
+  ingredients: ['Bread', 'Besan', 'Spices'],
+  steps: [
+    'Prepare batter',
+    'Dip bread',
+    'Deep fry',
+    'Drain oil',
+    'Serve'
+  ],
+  tip: 'Best with tomato ketchup.'
+}
 ];
 
 const CUISINES = [
