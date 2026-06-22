@@ -138,7 +138,7 @@ export default function StudentScholarships() {
                     <button
                       className="btn btn-sm"
                       style={{ background: 'var(--student-primary)', color: '#fff', borderRadius: 'var(--r-full)', marginTop: 12 }}
-                      onClick={() => showToast('Opening application portal… 📋', 'info')}
+                      onClick={() => window.open('https://saarthi-career-spark.lovable.app', '_blank')}
                     >
                       📝 Apply Now
                     </button>
@@ -172,7 +172,7 @@ export default function StudentScholarships() {
               <button
                 className="btn btn-sm"
                 style={{ background: 'var(--student-primary)', color: '#fff', borderRadius: 'var(--r-full)', flexShrink: 0 }}
-                onClick={() => showToast(`Applying to ${intern.company}… 📩`, 'success')}
+                onClick={() => window.open('https://saarthi-career-spark.lovable.app', '_blank')}
               >
                 Apply
               </button>
